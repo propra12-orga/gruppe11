@@ -111,13 +111,14 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
 
     // double buffered graphics
     private static BufferedImage offscreenImage, onscreenImage;
-    private static Graphics2D offscreen, onscreen;
+    static Graphics2D offscreen, onscreen;
 
     // singleton for callbacks: avoids generation of extra .class files
     private static StdDraw std = new StdDraw();
 
     // the frame for drawing to the screen
     private static JFrame frame;
+    public static JFrame getframe(){return frame;}
 
     // mouse state
     private static boolean mousePressed = false;
@@ -158,9 +159,11 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         height = h;
         init();
     }
-
+ 
+  //---------------------------------------------------------------------------------
     // init
     private static void init() {
+	//------------------------------------------------------------------
         if (frame != null) frame.setVisible(false);
         frame = new JFrame();
         offscreenImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -194,8 +197,9 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);            // closes all windows
         // frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);      // closes only current window
-        frame.setTitle("Standard Draw");
+        frame.setTitle("Bomberman");
         frame.setJMenuBar(createMenuBar());
+
         frame.pack();
         frame.requestFocusInWindow();
         frame.setVisible(true);
@@ -223,7 +227,6 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
      * Set the x-scale to be the default (between 0.0 and 1.0).
      */
     public static void setXscale() { setXscale(DEFAULT_XMIN, DEFAULT_XMAX); }
-
     /**
      * Set the y-scale to be the default (between 0.0 and 1.0).
      */
@@ -262,12 +265,12 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     }
 
     // helper functions that scale from user coordinates to screen coordinates and back
-    private static double  scaleX(double x) { return width  * (x - xmin) / (xmax - xmin); }
-    private static double  scaleY(double y) { return height * (ymax - y) / (ymax - ymin); }
-    private static double factorX(double w) { return w * width  / Math.abs(xmax - xmin);  }
-    private static double factorY(double h) { return h * height / Math.abs(ymax - ymin);  }
-    private static double   userX(double x) { return xmin + x * (xmax - xmin) / width;    }
-    private static double   userY(double y) { return ymax - y * (ymax - ymin) / height;   }
+    static double  scaleX(double x) { return width  * (x - xmin) / (xmax - xmin); }
+    static double  scaleY(double y) { return height * (ymax - y) / (ymax - ymin); }
+    static double factorX(double w) { return w * width  / Math.abs(xmax - xmin);  }
+    static double factorY(double h) { return h * height / Math.abs(ymax - ymin);  }
+    static double   userX(double x) { return xmin + x * (xmax - xmin) / width;    }
+    static double   userY(double y) { return ymax - y * (ymax - ymin) / height;   }
 
 
     /**
@@ -286,7 +289,13 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     }
 
     /**
-     * Get the current pen radius.
+     * Get the current pen radius.	frame.addKeyListener(mListener);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+              mListener.setPriority(Thread.NORM_PRIORITY);
+              mListener.start();
+            }
+        });
      */
     public static double getPenRadius() { return penRadius; }
 
@@ -365,7 +374,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
      * @param x the x-coordinate of the pixel
      * @param y the y-coordinate of the pixel
      */
-    private static void pixel(double x, double y) {
+    static void pixel(double x, double y) {
         offscreen.fillRect((int) Math.round(scaleX(x)), (int) Math.round(scaleY(y)), 1, 1);
     }
 
