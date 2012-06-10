@@ -58,17 +58,20 @@ public class SpielerListe {
 	}
 
 	public static void main(String[] args) {
-		SpielerListe head, node, tail, einfuegen, previous, current = new SpielerListe("NULL",null);
+		SpielerListe head=new SpielerListe();
+		SpielerListe node, tail, einfuegen, previous;
+		SpielerListe current=new SpielerListe();
 		String v;
 		String x, y;
+		boolean inserted;
 		
 		/* Einfuegen am Anfang */
-		head = new SpielerListe("Eins",null);
-		node = new SpielerListe("Zwei",head); head=node;
-		node = new SpielerListe("Drei",head); head=node;
-		einfuegen = new SpielerListe("Dreiunddreissig",null);
-		
-		/* Ausgabe und Einfuegen am Ende */
+		inserted=head.insertSNode("1");
+		inserted=head.insertSNode("2");
+		inserted=head.insertSNode("3");
+		inserted=head.insertSNode("4");
+		inserted=head.insertSNode("5");
+		/* Ausgabe */
 		node=head;
 		while(node!=null) { /* Ausgabe der Liste */
 			v = node.getElement();
@@ -76,60 +79,32 @@ public class SpielerListe {
 			System.out.println("Element="+v);
 			node=node.getNext();
 		}
-		System.out.println("------------------------------");
+		System.out.println(" Anzahl = " + head.count());
 		
-		current.setNext(einfuegen);
-		
-		/*   Setzen eine Elements (hier 2. Element der Liste) */
-		node=head;
-		node=node.getNext(); 
-		node.setElement("Zwolf");
-		
-		/*  Einfuegen in der Mitte - hinter Element mit Inhalt 12 */
-		x = "Zwolf";
-		einfuegen = new SpielerListe("55",null);
-		
-		node=head;
-		while(node!=null){
-		
-			if (node.getElement().equals( x)) {
-				current = node;
-				einfuegen.setNext(current.getNext());
-				current.setNext(einfuegen);
-			}
-			node=node.getNext();
-		}
-			   /* Ausgabe */
-		node=head;
-		while(node!=null) { /* Ausgabe der Liste */
-			v = node.getElement();
-			System.out.println("Element="+v);
-			node=node.getNext();
-		}
-		System.out.println("------------------------------");		
-	
-		/*  Loeschen Element 12 */
+		/* Löschen und Einfügen */
+		head=head.deleteSNode("1");
+		System.out.println(" Anzahl = " + head.count());
+		inserted=head.insertSNode("6");
+		System.out.println(" Anzahl = " + head.count());
 
-		x = "Zwolf";
-		node=head;
-		previous=head;
-		while(node!=null){
+		head=head.deleteSNode("3");
+		System.out.println(" Anzahl = " + head.count());
+		inserted=head.insertSNode("7");
+		System.out.println(" Anzahl = " + head.count());
 		
-			if (node.getElement().equals(x)) {
-			    if (node == head) {head=node.getNext();}
-				else {previous.setNext(node.getNext());}
-			} 
-			previous = node;
-			node=node.getNext();
-		}
-		
-		   /* Ausgabe */
+		head=head.deleteSNode("7");
+		System.out.println(" Anzahl = " + head.count());
+		inserted=head.insertSNode("8");
+		System.out.println(" Anzahl = " + head.count());
+
+		/* Ausgabe */
 		node=head;
 		while(node!=null) { /* Ausgabe der Liste */
 			v = node.getElement();
+			current = node;
 			System.out.println("Element="+v);
 			node=node.getNext();
 		}
-		System.out.println("------------------------------");		
+		System.out.println(" Anzahl = " + head.count());
 	}
 }
