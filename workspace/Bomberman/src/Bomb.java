@@ -1,14 +1,28 @@
-public class Bomb extends Spieler {
+/**
+ * Die Bombe ist ein Bestandteil des Spiels mit eigenen Attributen.
+ *
+ * Die Bombe wird als Ellipse dargestellt. Sie hat eine Aktivierungszeit, nach der sie erst explodiert. 
+ * Die Explosionszeit dient zur Einstellung wie lange die Explosion dargestellt werden soll.
+ * Der Explosionsradius gibt an wie viele Felder rund um die Bombe bei der Explosion betroffen sein sollen.
+ * Die Explosionsfarbe kann von der Bombenfarbe unterschiedlich sein.
+ * Die Bombe wurde von einem Spieler gelegt, dieser erhält einen Score wenn die Bombe bestimmte Objekte zerstört.
+ */
+public class Bomb extends Mauerstein {
     
     protected double majorAxis, minorAxis;   
-    private boolean active;
     private int activecount;
     private int explodecount;
     final private int activetime = 50;
     final private int explodetime = 2;
     private Colour excol;
     private int exploderadius=2;
+    public int ipos, jpos;
+    Spieler spieler;
     
+/**
+ * Default Konstruktor
+ *
+ */
     public Bomb() {
         this.majorAxis =  0.01  + Math.random() * 0.01;
         this.minorAxis =  0.01  + Math.random() * 0.01;
@@ -16,7 +30,15 @@ public class Bomb extends Spieler {
 	activecount=0;
     } 
 	
-    public Bomb(double px, double py, double major, double minor, Colour col, Colour excol, int symbol) {
+/**
+ * Konstruktor der die Bombe initiiert.
+ *
+ * @param px X-Position der Bombe
+ * @param py Y-Position der Bombe
+ * @param major Hauptachse der Bom
+ *
+ */
+    public Bomb(double px, double py, double major, double minor, Colour col, Colour excol, Spieler spieler, int symbol) {
 	    	this.px = px;
 		this.py = py;
 		this.col = col;
@@ -25,8 +47,14 @@ public class Bomb extends Spieler {
 		active=false;
 		activecount=0;
 		this.excol=excol;
-		spielersymbol=symbol;
+		this.symbol=symbol;
+		this.spieler=spieler;
 	}
+    /**
+     * Definition einer weissen Farbe
+     *
+     * @return RGB für Weiss
+     */
     private static Colour white(){
 		int red = 255;
 		int green = 255;
@@ -34,151 +62,208 @@ public class Bomb extends Spieler {
 		
 		return new Colour(red, green, blue);
     } 
+
+    /**
+     * Zeichnen der Bombe
+     */
     public void draw() {
         StdDraw.setPenColor(col);
         StdDraw.filledEllipse(px, py, majorAxis, minorAxis);
     }
     
+    /**
+     * Aktivieren der Bombe
+     */
     public void activate() {
 	    active=true;
 	    activecount=0;
 	    explodecount=0;
     }
 
+    /**
+     * Explodieren der Bombe
+     *
+     * @param fl Auf welcher Grundfläche die Bombe liegt.
+     * @param spieler1 Erster Spieler auf der Grundfläche
+     * @param spieler2 Zweiter Spieler auf der Grundfläche
+     * @param bombex Weitere Bombe auf der Grundfläche (für Kettenreaktion)
+     *
+     */
     public void explode (Grundflaeche fl, Spieler spieler1, Spieler spieler2, Bomb bombex) {
 	    int jposition;
 	    int iposition;
+	    // dx und dy der Grundelemente holen
 	    double dx=fl.getdx();
 	    double dy=fl.getdy();
 
+	    //Explosionsfarbe setzen
             StdDraw.setPenColor(excol);
+	    //Explosion malen (zwei Elipsen die jeweils ein Grundelement breit/hoch und 2x den Explosionsradius abdecken)
 	    StdDraw.filledEllipse (px, py, majorAxis, 2*exploderadius*majorAxis);
 	    StdDraw.filledEllipse (px, py, 2*exploderadius*majorAxis, majorAxis);
+
+	    //i und j Position auf der Grundfläche holen
 	    iposition=fl.geti(py);
 	    jposition=fl.getj(px);
-//	    System.out.println("------------------------------------");
+
+	    // Der Explodecount gibt an wieviele Zyklen die Explosion gezeichnet wird. 
+	    // Aber nur beim ersten Zyklus muss berechnet werden was alles kaputtgemacht wird.
+	    if (explodecount==1){
+
+
+            /*
+	     * Hier folgen vier Schleifen, die von der Bombenposition auf der Grundfläche in die jeweilige Richtung schauen ob es im Explosionsradius ein Element zu zerstöre gibt
+	     */
+
+	    // Von der aktuellen Position nach unten gehen
             for (int i=Math.max(0, iposition); i>=Math.max(0, iposition-exploderadius); i--){
-//	         System.out.println( "i down =" + i + ", jpos= " + jposition + ", ipos= " + iposition );
-//		 System.out.println(fl.initialposition[i][jposition]);
+
+		 // Wenn eine feste Mauer im Weg liegt, wird dahinter nichts mehr zerstört. Die Schleife wird abgebrochen^
 		 if (fl.initialposition[i][jposition] == Grundflaeche.festemauer){
 			 break;
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.losemauer) {
-			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
+
+		 // Wenn ann der Position eine Losemauer liegt (eventuell über einem Ausgang), gibt es etwas zu tun.
+		 if (fl.initialposition[i][jposition] % Grundflaeche.ausgang == Grundflaeche.losemauer) {
+			// Wenn es ein Ausgang ist, dann setze die Position wieder auf Ausgang, sonst auf Keinemauer.
+			if (fl.initialposition[i][jposition] > Grundflaeche.ausgang) {fl.initialposition[i][jposition] = Grundflaeche.ausgang;}
+			else { fl.initialposition[i][jposition] = Grundflaeche.keinemauer;}
+
+			this.spieler.score++;
+
+			// Keinemauer muss nicht gezeichnet werden (Zeit sparen)
+			fl.mauerstueck[i][jposition].active = false;
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.spielersym1) {
+
+		 // Wenn es sich um einen Spieler handelt (spieler1 oder spieler2) dann wird das Leben des Spielers um 1 reduziert.
+		 if (fl.initialposition[i][jposition] == Grundflaeche.spielersym1) {
 			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
-			spieler1.active=false;
+			spieler1.reducelive(fl);
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.spielersym2) {
+		 if (fl.initialposition[i][jposition] == Grundflaeche.spielersym2) {
 			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
-			spieler2.active=false;
+			spieler2.reducelive(fl);
 		 }
-		 else if (fl.initialposition[i][jposition] == bombex.spielersymbol) {
-			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
+
+		 // Wenn wir auf eine andere Bombe treffen, lassen wir diese explodieren.
+		 if (i==bombex.ipos && jposition == bombex.jpos) {
 			System.out.println(" Andere Bombe getroffen");
 			bombex.explode(fl, spieler1, spieler2, this);
+			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
 		 }
 	    }
 
+	    // hier gehen wir von der aktuellen Bombenposition nach oben ... die Aktivitäten sind die Gleichen.
             for (int i=Math.min(iposition+1, fl.getny()); i<=Math.min(fl.getny(), iposition+exploderadius); i++){
-//	         System.out.println( "i up =" + i + ", jpos= " + jposition + ", ipos= " + iposition );
-//		 System.out.println(fl.initialposition[i][jposition]);
 		 if (fl.initialposition[i][jposition] == Grundflaeche.festemauer){
 			 break;
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.losemauer) {
-			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
+		 if (fl.initialposition[i][jposition] % Grundflaeche.ausgang == Grundflaeche.losemauer) {
+			if (fl.initialposition[i][jposition] > Grundflaeche.ausgang) {fl.initialposition[i][jposition] = Grundflaeche.ausgang;}
+			else {fl.initialposition[i][jposition] = Grundflaeche.keinemauer;}
+
+			this.spieler.score++;
+
+			fl.mauerstueck[i][jposition].active=false;
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.spielersym1) {
+		 if (fl.initialposition[i][jposition] == Grundflaeche.spielersym1) {
 			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
-			spieler1.active=false;
+			spieler1.reducelive(fl);
 		 }
-		 else if (fl.initialposition[i][jposition] == Grundflaeche.spielersym2) {
+		 if (fl.initialposition[i][jposition] == Grundflaeche.spielersym2) {
 			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
-			fl.mauerstueck[i][jposition]= new Rectangle(jposition*dx, i*dy, dx, dy, white());
-			spieler2.active=false;
+			spieler2.reducelive(fl);
 		 }
-		 else if (fl.initialposition[i][jposition] == bombex.spielersymbol) {
-			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
+		 if (i==bombex.ipos && jposition == bombex.jpos) {
 			System.out.println(" Andere Bombe getroffen");
 			bombex.explode(fl, spieler1, spieler2, this);
+			fl.initialposition[i][jposition] = Grundflaeche.keinemauer;
 		 }
 	    }
 
+	    // hier gehen wir von der aktuellen Bombenposition nach links ... die Aktivitäten sind die Gleichen.
             for (int j=Math.max(0, jposition-1); j>=Math.max(0, jposition-exploderadius); j--){
-//	         System.out.println( "j left =" + j + ", jpos= " + jposition + ", ipos= " + iposition );
-//		 System.out.println(fl.initialposition[iposition][j]);
 		 if (fl.initialposition[iposition][j] == Grundflaeche.festemauer){
 			 break;
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.losemauer) {
-			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
+		 if (fl.initialposition[iposition][j] % Grundflaeche.ausgang == Grundflaeche.losemauer) {
+			 if (fl.initialposition[iposition][j] > Grundflaeche.ausgang) {fl.initialposition[iposition][j] = Grundflaeche.ausgang;}
+			 else {fl.initialposition[iposition][j] = Grundflaeche.keinemauer;}
+
+			this.spieler.score++;
+
+			fl.mauerstueck[iposition][j].active = false;
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.spielersym1) {
+		 if (fl.initialposition[iposition][j] == Grundflaeche.spielersym1) {
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
-			spieler1.active=false;
+			spieler1.reducelive(fl);
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.spielersym2) {
+		 if (fl.initialposition[iposition][j] == Grundflaeche.spielersym2) {
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
-			spieler2.active=false;
+			spieler2.reducelive(fl);
 		 }
-		 else if (fl.initialposition[iposition][j] == bombex.spielersymbol) {
+		 if (iposition==bombex.ipos && j == bombex.jpos) {
 			bombex.explode(fl, spieler1, spieler2, this);
 			System.out.println(" Andere Bombe getroffen");
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
 		 }
 	    }
+	    
+	    // hier gehen wir von der aktuellen Bombenposition nach rechts ... die Aktivitäten sind die Gleichen.
             for (int j=Math.min(jposition+1, fl.getnx()); j<=Math.min(fl.getnx(), jposition+exploderadius); j++){
-//	         System.out.println( "j right =" + j + ", jpos= " + jposition + ", ipos= " + iposition );
-//		 System.out.println(fl.initialposition[iposition][j]);
 		 if (fl.initialposition[iposition][j] == Grundflaeche.festemauer){
 			 break;
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.losemauer) {
-			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
+		 if (fl.initialposition[iposition][j] % Grundflaeche.ausgang == Grundflaeche.losemauer) {
+			if (fl.initialposition[iposition][j] > Grundflaeche.ausgang) {fl.initialposition[iposition][j] = Grundflaeche.ausgang;}
+			else {fl.initialposition[iposition][j] = Grundflaeche.keinemauer;}
+
+			this.spieler.score++;
+
+			fl.mauerstueck[iposition][j].active = false;
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.spielersym1) {
+		 if (fl.initialposition[iposition][j] == Grundflaeche.spielersym1) {
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
-			spieler1.active=false;
+			spieler1.reducelive(fl);
 		 }
-		 else if (fl.initialposition[iposition][j] == Grundflaeche.spielersym2) {
+		 if (fl.initialposition[iposition][j] == Grundflaeche.spielersym2) {
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
-			fl.mauerstueck[iposition][j]= new Rectangle(j*dx, iposition*dy, dx, dy, white());
-			spieler2.active=false;
+			spieler2.reducelive(fl);
 		 }
-		 else if (fl.initialposition[iposition][j] == bombex.spielersymbol) {
+		 if (iposition==bombex.ipos && j == bombex.jpos) {
 			bombex.explode(fl, spieler1, spieler2, this);
 			System.out.println(" Andere Bombe getroffen");
 			fl.initialposition[iposition][j] = Grundflaeche.keinemauer;
 		 }
+	    }
 	    }
     }
+
+    /**
+     * Neuzeichnen der Bombe 
+     *
+     * @param fl Grundfläche auf der die Bombe neu gezeichnet werden soll
+     * @param spieler1 Übergabe des ersten Spielers auf der Grundfläche
+     * @param spieler2 Übergabe des zweiten Spielers auf der grundfläche
+     * @param bombex Übergabe der zweiten Bombe für die Kettenreaktion
+     */
     public void redraw(Grundflaeche fl, Spieler spieler1, Spieler spieler2, Bomb bombex){
-	        int bombei=fl.geti(py);
-		int bombej=fl.getj(px);
+	        ipos=fl.geti(py);
+		jpos=fl.getj(px);
+		// Aktionen nur, wenn die Bombe Aktiv ist.
 		if (active) {
-			fl.initialposition[bombej][bombei] = spielersymbol;
 			if (activecount < activetime) {
+				// Zeichnen der Bombe solange sie Aktiv ist
 				activecount ++;
 				this.draw();
 			}
 			else if (explodecount < explodetime) {
+				// Explodieren der Bombe solange sie Aktiv ist.
 				explodecount ++;
 				this.explode(fl, spieler1, spieler2, bombex);
 			}
 			else {active = false; 
-			   fl.initialposition[bombej][bombei] = Grundflaeche.keinemauer;
+			   // Zurücksetzen der Position auf Keinemauer.
 			}
 		}
     }

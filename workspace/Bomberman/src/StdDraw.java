@@ -289,13 +289,7 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
     }
 
     /**
-     * Get the current pen radius.	frame.addKeyListener(mListener);
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-              mListener.setPriority(Thread.NORM_PRIORITY);
-              mListener.start();
-            }
-        });
+     * Get the current pen radius.
      */
     public static double getPenRadius() { return penRadius; }
 

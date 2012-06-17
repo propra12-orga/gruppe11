@@ -5,16 +5,18 @@ import javax.swing.*;
 
 
 public class BombermanMenu extends JFrame implements ActionListener {
-	SpielerListe spielerliste = new SpielerListe();
-	MenuBar menubar;
-	Menu file; 
-	Menu help;
-	Menu player;
-	Menu bomberman;
+	final public String noplayer ="none";
+	private MenuBar menubar;
+	private Menu file; 
+	private Menu help;
+	private Menu player;
+	private Menu bomberman;
 	
-	Panel p;
-	Label level, player1, player2;
-	TextArea textarea, leveltext, p1text, p2text;
+	private Panel p;
+	private Label level, player1, player2,p1livlab, p2livlab, p1scorlab, p2scorlab;
+	public SpielerListe spielerliste = new SpielerListe();
+	public TextArea textarea, leveltext, p1text, p2text, p1lives, p2lives, p1score, p2score;
+	public boolean neustart=false;
 	
 	public BombermanMenu(String title) {
 		super(title);
@@ -56,18 +58,38 @@ public class BombermanMenu extends JFrame implements ActionListener {
 		Label level = new Label("Level:");
 		Label player1 = new Label("Player1:");
 		Label player2 = new Label("Player2:");
+		Label p1livlab = new Label("Lives:");
+		Label p2livlab = new Label("Lives:");
+		Label p1scorlab = new Label("Score:");
+		Label p2scorlab = new Label("Score:");
 		leveltext = new TextArea("1", 1, 3, TextArea.SCROLLBARS_NONE);
 		leveltext.setEditable(false);
-		p1text = new TextArea("----------", 1, 10, TextArea.SCROLLBARS_NONE);
+		p1text = new TextArea(noplayer, 1, 10, TextArea.SCROLLBARS_NONE);
 		p1text.setEditable(false);
-		p2text = new TextArea("----------", 1, 10, TextArea.SCROLLBARS_NONE);
+		p2text = new TextArea(noplayer, 1, 10, TextArea.SCROLLBARS_NONE);
 		p2text.setEditable(false);
+		p1lives = new TextArea("", 1, 3, TextArea.SCROLLBARS_NONE);
+		p1lives.setEditable(false);
+		p2lives = new TextArea("", 1, 3, TextArea.SCROLLBARS_NONE);
+		p2lives.setEditable(false);
+		p1score = new TextArea("", 1, 3, TextArea.SCROLLBARS_NONE);
+		p1score.setEditable(false);
+		p2score = new TextArea("", 1, 3, TextArea.SCROLLBARS_NONE);
+		p2score.setEditable(false);
 		p.add(level);
 		p.add(leveltext);
 		p.add(player1);
 		p.add(p1text);
+		p.add(p1livlab);
+		p.add(p1lives);
+		p.add(p1scorlab);
+		p.add(p1score);
 		p.add(player2);
 		p.add(p2text);
+		p.add(p2livlab);
+		p.add(p2lives);
+		p.add(p2scorlab);
+		p.add(p2score);
 
 		this.add("Center",p);
 		
@@ -100,6 +122,7 @@ public class BombermanMenu extends JFrame implements ActionListener {
 	    	} 
 		else if (cmd.equals( "Quit" )){
 		textarea.setText("Quit found");
+		System.exit(0);
 	    	} 
 		else if (cmd.equals( "SelectPlayer1" )){
 			textarea.setText("Select Player 1 found");
@@ -123,7 +146,6 @@ public class BombermanMenu extends JFrame implements ActionListener {
 			textarea.setText(s);
 			if ((s != null) && (s.length() > 0)) {
 				inserted=this.spielerliste.insertSNode(s);
-				System.out.println(this.spielerliste.count());
 			}
 		} 
 		else if (cmd.equals( "Delete" )){
@@ -131,8 +153,8 @@ public class BombermanMenu extends JFrame implements ActionListener {
 			s = selectSpieler("Spieler loeschen:\n", "Spieler loeschen");
 			textarea.setText(s);
 			if ((s != null) && (s.length() > 0)) {
-				if (p2text.getText().equals (s)) {p2text.setText("----------");}
-				if (p1text.getText().equals (s)) {p1text.setText("----------");}
+				if (p2text.getText().equals (s)) {p2text.setText(noplayer);}
+				if (p1text.getText().equals (s)) {p1text.setText(noplayer);}
 				this.spielerliste=this.spielerliste.deleteSNode(s);
 				}
 			}
@@ -144,6 +166,7 @@ public class BombermanMenu extends JFrame implements ActionListener {
 		}
 		else if (cmd.equals( "Neustart" )){
 		textarea.setText("Neustart found");
+		neustart=true;
 		} 
 		else if (cmd.equals( "Level" )){
 		textarea.setText("Level found");
@@ -156,6 +179,14 @@ public class BombermanMenu extends JFrame implements ActionListener {
 	    	}
   	}
 	
+	public void playerstatus (Grundflaeche spielfeld, Spieler spieler, String sname){
+		if (sname.equals(noplayer)) {
+			spieler.deactivate(spielfeld);
+		} else if (spieler.alive()){
+			spieler.active=true;
+		}
+	}
+
 	class myWindowListener extends WindowAdapter {
 	    public void windowClosing(WindowEvent e){
 	      	e.getWindow().dispose();                   // Fenster "killen"

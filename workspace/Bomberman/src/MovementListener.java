@@ -1,15 +1,11 @@
 import java.awt.event.*;
 import java.text.NumberFormat;
 
-/* 
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
-*/
-
+/**
+ * MovementListener ist eine Classe die für die Steuerung der Spieler und das Legen der
+ * Bomben verwendet wird.
+ * MovementListener läuft als eigener Thread.
+ */
 public abstract class MovementListener extends Thread implements java.awt.event.KeyListener {
     public long timeSlice = 50; // Millisekunden, wie oft soll die Bewegung abgefragt werden
     private int left = 0;
@@ -78,6 +74,10 @@ public abstract class MovementListener extends Thread implements java.awt.event.
         stopFlag = true;
     }
 
+    /**
+     * doMovement muss an der richtigen Stelle genutzt werden, ist hier nur abstract definiert.
+     *
+     */
     public abstract void doMovement(int left, int right, int up, int down, int left1, int right1, int up1, int down1, int bomb1, int bomb2);
 }
 
