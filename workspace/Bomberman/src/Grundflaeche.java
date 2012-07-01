@@ -8,6 +8,7 @@ public class Grundflaeche {
 	private double dx;
 	private double dy;
 	private int nx, ny;
+	private boolean textactive = false;
 	public Colour col;
 	final static int keinemauer=0;
 	final static int festemauer=1;
@@ -16,13 +17,15 @@ public class Grundflaeche {
 	final static int spielersym2=11;
 	final static int bombesym1=21;
 	final static int bombesym2=22;
+	final static int actorsym1=31;
 	final static int ausgang=100;
+	Levels playlevel = Levels.getplaylevel();
 	
 	/* initialposition legt die Anfangsbedingung fest, wird aber auch im Laufe des Spiels immer wieder genutzt um festzustellen welche Art von
 	 * Elementen auf der jeweiligen Position liegen. Wenn ein "loser Mauerstein" durch eine Bombe zerstört wird, wird die Position durch 
 	 * "Keinemauer" ersetzt ... Spieler können nur auf Positionen gehen, die "Keinemauer" beinhalten.
 	 */
-	int initialposition[][] = {
+	int initialposition[][]; /* = {
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
 			{1, 11, 0, 0, 0, 0, 0, 0, 2, 0, 1},
 			{1, 0, 1, 0, 1, 0, 1, 1, 1, 2, 1},
@@ -34,21 +37,27 @@ public class Grundflaeche {
 			{1, 0, 1, 2, 1, 0, 1, 1, 1, 2, 1},
 			{10, 0, 2, 0, 0, 0, 2, 0, 0, 0, 1},
 			{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-			} ;
+			} ;*/
 	Mauerstein mauerstueck[][];
 	Spieler spieler1, spieler2;
-	
+
+	public int level;
+	public int anzahlleben;
+
 	/**
 	 * Defaultkonstruktor
 	 */
 	public Grundflaeche(){
-		this.dx = 0.1;
-		this.dy = 0.1;
-		this.nx = 11;
-		this.ny = 11;
+		this.dx = playlevel.getDx();
+		this.dy = playlevel.getDy();
+		this.nx = playlevel.getNx();
+		this.ny = playlevel.getNy();
 		this.mauerstueck = new Mauerstein[this.nx] [this.ny];
 		this.spieler1 = new Spieler(dx, dy, dx/2, yellow(), spielersym1);
 		this.spieler2 = new Spieler(2*dx, 2*dy, dx/2, pink(), spielersym2);
+		this.initialposition=playlevel.getInitialposition();
+		this.level=playlevel.getLevel();
+		this.anzahlleben=playlevel.getAnzahlleben();
 	}
 	
 	/**
@@ -59,14 +68,17 @@ public class Grundflaeche {
 	 * @param dx Breite x eines Grundflächenelements
 	 * @param dy Höhe y eines Grundflächenelements
 	 */
-	public Grundflaeche(Spieler spieler1, Spieler spieler2, double dx, double dy){
-		this.dx = dx;
-		this.dy = dy;
-		this.nx = 11;
-		this.ny = 11;
+	public Grundflaeche(Spieler spieler1, Spieler spieler2){
+		this.dx = playlevel.getDx();
+		this.dy = playlevel.getDy();
+		this.nx = playlevel.getNx();
+		this.ny = playlevel.getNy();
 		this.mauerstueck = new Mauerstein[this.nx] [this.ny];
 		this.spieler1 = spieler1;
 		this.spieler2 = spieler2;
+		this.initialposition=playlevel.getInitialposition();
+		this.level=playlevel.getLevel();
+		this.anzahlleben=playlevel.getAnzahlleben();
 	}
 
 	/**
@@ -113,6 +125,14 @@ public class Grundflaeche {
 		return new Colour(red, green, blue);
 	}
 
+	/**
+	 * Aktiviere die textuelle Darstellung auf dem Spielfeld
+	 *
+	 * @param activate Setzen der Textaktivierung
+	 */
+	public void setTextActive(boolean activate) {
+		textactive=activate;
+	}
 
 	/**
 	 * @return Rückgabe der Breite eines Grundflächenelements
@@ -162,6 +182,10 @@ public class Grundflaeche {
 				if (mauerstueck[i][j].active) {
 					mauerstueck[i][j].draw();
 				}
+				if (textactive){
+					StdDraw.setPenColor(pink());
+					StdDraw.text(mauerstueck[i][j].getxPosition(), mauerstueck[i][j].getyPosition(), Integer.toString(initialposition[i][j]));
+				}
 			}
 		}
 	}				
@@ -172,7 +196,7 @@ public class Grundflaeche {
 	 * in Abhängigkeit der "Visibility" der Grundfläche
 	 */
 
-	public void draw(boolean visible){
+	public void create(boolean visible){
 		
 		for (int i=0; i<ny; i++){
 			for (int j=0; j<nx; j++){

@@ -629,6 +629,18 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         return icon.getImage();
     }
 
+
+    // get an image from the given Stream
+    private static Image getImage(byte [] idata) {
+
+        // to read from stream
+        ImageIcon icon = new ImageIcon(idata);
+
+        return icon.getImage();
+    }
+
+    /**
+     * Draw picture (gif, jpg, or png) centered on (x, y).
     /**
      * Draw picture (gif, jpg, or png) centered on (x, y).
      * @param x the center x-coordinate of the image
@@ -637,6 +649,27 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
      * @throws RuntimeException if the image is corrupt
      */
     public static void picture(double x, double y, String s) {
+        Image image = getImage(s);
+        double xs = scaleX(x);
+        double ys = scaleY(y);
+        int ws = image.getWidth(null);
+        int hs = image.getHeight(null);
+        if (ws < 0 || hs < 0) throw new RuntimeException("image " + s + " is corrupt");
+
+        offscreen.drawImage(image, (int) Math.round(xs - ws/2.0), (int) Math.round(ys - hs/2.0), null);
+        draw();
+    }
+
+    /**
+     * Draw picture (gif, jpg, or png) centered on (x, y).
+    /**
+     * Draw picture (gif, jpg, or png) centered on (x, y).
+     * @param x the center x-coordinate of the image
+     * @param y the center y-coordinate of the image
+     * @param s the name of the byte array
+     * @throws RuntimeException if the image is corrupt
+     */
+    public static void picture(double x, double y, byte [] s) {
         Image image = getImage(s);
         double xs = scaleX(x);
         double ys = scaleY(y);
@@ -882,6 +915,20 @@ public final class StdDraw implements ActionListener, MouseListener, MouseMotion
         else {
             System.out.println("Invalid image file type: " + suffix);
         }
+    }
+
+    /*************************************************************************
+    *  Save drawing to a stream.
+    *************************************************************************/
+
+    /**
+     * Save onscreen image to file - suffix must be png, jpg, or gif.
+     * @param imagestream the name of the file with one of the required suffixes
+     */
+    public static boolean save(OutputStream imagestream) {
+
+            try { ImageIO.write(onscreenImage, "jpg", imagestream);imagestream.flush(); return true;}
+            catch (IOException e) { e.printStackTrace(); return false;}
     }
 
 

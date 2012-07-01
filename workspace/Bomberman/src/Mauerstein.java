@@ -52,6 +52,31 @@ abstract class Mauerstein implements Drawable {
         	vy      = 0.015 - Math.random() * 0.03;
 	}
 	
+	
+    /**
+     * Konstructor für Mauerstein
+     *
+     * @param px die X-Position des Mauersteins
+     * @param py die Y-Position des Mauersteins
+     */
+    public Mauerstein(double px, double py) {
+		this.px = px;
+		this.py = py;
+        	col     = randCol();    
+        	vx      = 0.015 - Math.random() * 0.03;
+        	vy      = 0.015 - Math.random() * 0.03;
+	}
+
+    public void randomactive(){
+	    int randompx=(int)(Math.random()*100)+1;
+	    int randompy=(int)(Math.random()*100)+1;
+	    px= (double)randompx/100.0;
+	    py= (double)randompy/100.0;
+       	    vx      = 0.015 - Math.random() * 0.03;
+            vy      = 0.015 - Math.random() * 0.03;
+	    active=true;
+    }
+
     /**
      * Verschiebung mit einer Geschwindigkeit vx / vy
      * Richtungswechsel bei Erreichen des Randes.

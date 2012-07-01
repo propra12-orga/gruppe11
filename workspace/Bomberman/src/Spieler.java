@@ -6,8 +6,11 @@ public class Spieler extends Ball {
     public boolean dead=false;
     public int lives = 3;
     public int score = 0;
+    public boolean superman = false;
 
     final private int scoreout = 100;
+    private String handschuh = ".\\GIFS\\Torwarthandschuh.gif";   
+    private String filename=handschuh;
 
     /**
      * Default Konstruktor
@@ -53,6 +56,10 @@ public class Spieler extends Ball {
 	    if (lives == 0) {dead=true;deactivate(fl);}
     }
 
+    public void addlife(){
+	    if (active) {lives++;};
+    }
+
     /** 
      * Ermittelung, ob der Spieler noch lebt.
      *
@@ -70,7 +77,10 @@ public class Spieler extends Ball {
     public void deactivate (Grundflaeche fl){
 	        int spieleri=fl.geti(py);
 	        int spielerj=fl.getj(px);
-		fl.initialposition[spieleri][spielerj] =- symbol;
+		if (fl.initialposition[spieleri][spielerj] == Grundflaeche.ausgang+symbol) {
+			fl.initialposition[spieleri][spielerj]=Grundflaeche.ausgang;}
+		else {
+			fl.initialposition[spieleri][spielerj] = Grundflaeche.keinemauer;}
 		active=false;
     }
 
@@ -80,6 +90,14 @@ public class Spieler extends Ball {
      * @param y Y-Position
      */
     public void setoldPosition(double x, double y){ oldx = x; oldy =y;}
+
+    public void draw() {
+	if (lives > 5) {superman=true;} else {superman=false;}
+	if (superman) {
+       	   StdDraw.picture(px, py, filename);
+	}
+	else {super.draw();}
+    }
 
     /**
      * Neuzeichnen des Spielers auf der Grundfläche
@@ -116,6 +134,7 @@ public class Spieler extends Ball {
 			spieleri=fl.geti(py);
 			spielerj=fl.getj(px);
 			if ( fl.initialposition[spieleri][spielerj] >= Grundflaeche.ausgang) {
+				StdAudio.play(".\\Sound\\Applaus.wav");
 				score=score+scoreout; 
 				deactivate(fl); 
 				lives=0;
