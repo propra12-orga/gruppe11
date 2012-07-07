@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.*;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -106,7 +107,7 @@ public class BombermanMenu extends JFrame implements ActionListener {
 
 		this.add("Center",p);
 		
-		textarea = new TextArea("DRISS",2,40);
+		textarea = new TextArea("",2,40);
 		textarea.setEditable(false);
 		this.add("South",textarea);
 		setdefaultLevel();
@@ -258,10 +259,18 @@ public class BombermanMenu extends JFrame implements ActionListener {
 			}
 		} 
 		else if (cmd.equals( "About" )){
-		textarea.setText("About found");
+			if (Desktop.isDesktopSupported()) 
+			{
+			   try {
+			  	   File myFile = new File("Bomberman Anleitung.pdf");
+			  	   Desktop.getDesktop().open(myFile);
+		      	   } catch (IOException ex) {
+			  	   // no application registered for PDFs
+			   }
+		       	} 
 		}
 	    	else {
-		System.out.println( "default" );
+			System.out.println( cmd+" ... Kommando nicht implementiert" );
 	    	}
   	}
 	
